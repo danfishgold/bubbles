@@ -1,19 +1,94 @@
 <html>
   <head>
     <title>Bubbles</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <style>
       body {
         margin: 0;
         padding: 0;
       }
       canvas {
-        width: 100%;
-        height: 100%;
+        position: fixed;
+        z-index: -1;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+      }
+
+      #container {
+        margin-top: 100vh;
+        width: 100vw;
+        height: 100vh;
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        grid-template-rows: 1fr auto 1fr;
+      }
+
+      main {
+        grid-row: 2;
+        grid-column: 2;
+
+        display: flex;
+        flex-direction: column;
+        background: lightblue;
+        font-family: Georgia, 'Times New Roman', Times, serif;
+        font-size: 1.2rem;
+
+        padding: 4rem;
+        width: 50vmin;
+        height: auto;
+      }
+
+      @media (min-width: 500px) and (min-height: 500px) {
+        main {
+          width: 350px;
+          height: 350px;
+        }
+      }
+
+      h1 {
+        text-align: center;
+        margin: 0;
+      }
+
+      p {
+        line-height: 1.4;
+      }
+
+      a {
+        color: black;
+      }
+
+      #content {
+        flex-grow: 1;
+      }
+
+      #signature {
+        text-align: right;
       }
     </style>
   </head>
   <body>
     <canvas id="c"></canvas>
+    <div id="container">
+      <main>
+        <h1>I miss xoxo so much</h1>
+        <div id="content">
+          <p>
+            this is a tribute to the very cool animation that played between
+            talks at <a href="https://xoxofest.com">XOXO 2019</a>.
+          </p>
+          <p>
+            I've wanted to attend ever since 2013 and I finally got to go in
+            2019. it was spectacular.
+          </p>
+        </div>
+        <p id="signature">♥︎ <a href="https://danfishgold.com">Dan</a></p>
+      </main>
+    </div>
     <script>
       // thanks https://codepen.io/Compile/pen/YJvgxQ
       const canvas = document.getElementById('c')
@@ -171,7 +246,7 @@
       gl.bufferData(
         gl.ARRAY_BUFFER,
         new Float32Array(vertexLocations),
-        gl.STATIC_DRAW,
+        gl.STATIC_DRAW
       )
 
       // PROGRAM
@@ -182,13 +257,13 @@
         gl.VERTEX_SHADER,
         vertexShaderSource,
         gl,
-        program,
+        program
       )
       const fragmentShader = buildShader(
         gl.FRAGMENT_SHADER,
         fragmentShaderSource,
         gl,
-        program,
+        program
       )
 
       gl.linkProgram(program)
@@ -208,7 +283,7 @@
         gl.FLOAT,
         gl.FALSE,
         fieldCount * Float32Array.BYTES_PER_ELEMENT,
-        0,
+        0
       )
 
       const timestampId = gl.getUniformLocation(program, 'u_time')
