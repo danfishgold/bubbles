@@ -17,12 +17,10 @@
     <script>
       // thanks https://codepen.io/Compile/pen/YJvgxQ
       const canvas = document.getElementById('c')
-      canvas.width = canvas.clientWidth // * window.devicePixelRatio;
-      canvas.height = canvas.clientHeight // * window.devicePixelRatio;
+      const dpr = 1 // or window.devicePixelRatio for less pixelation on retina
+      canvas.width = canvas.clientWidth * dpr
+      canvas.height = canvas.clientHeight * dpr
 
-      const octaves = 2
-      const persistence = 0.65
-      const threshold = 0.65
       // Get GL drawing context
       const gl = canvas.getContext('webgl')
 
@@ -50,9 +48,15 @@
 
         uniform float u_time;
         uniform float u_scale;
-        const int octaves = ${octaves};
-        const float persistence = ${persistence};
-        const float threshold = ${threshold};
+        uniform vec4 u_bgColor;
+        uniform vec4 u_bubbleColor;
+        uniform vec4 u_lightColor;
+
+        uniform int u_octaves;
+        uniform float u_persistence;
+        uniform float u_threshold;
+
+        const int MAX_OCTAVES = 8;
 
         vec3 mod289(vec3 x) {
           return x - floor(x * (1.0 / 289.0)) * 289.0;
@@ -118,23 +122,24 @@
           float frequency = 1.0;
           float amplitude = 1.0;
           float maxValue = 0.0;
-          for (int i = 0; i < octaves; i++) {
+          for (int i = 0; i < MAX_OCTAVES; i++) {
+            // neat trick via https://stackoverflow.com/a/38988387
+            if (i >= u_octaves) {
+              break;
+            }
             total += snoise(v * frequency) * amplitude;
             maxValue += amplitude;
-            amplitude *= persistence;
+            amplitude *= u_persistence;
             frequency *= 2.0;
           }
           return total / maxValue;
         }
 
-        vec4 white = vec4(1.0, 1.0, 1.0, 1.0);
-        vec4 black = vec4(0.0, 0.0, 0.0, 1.0);
-
         vec4 color(float f) {
-          vec4 b1 = white;
-          vec4 b2 = mix(black, white, smoothstep(threshold, 1.0, f));
-          float flag = step(threshold, f);
-          return flag*b2 + (1.0-flag)*b1;
+          return
+            f < u_threshold
+            ? u_bgColor
+            : mix(u_bubbleColor, u_lightColor, smoothstep(u_threshold, 1.0, f));
         }
 
         void main() {
@@ -149,8 +154,8 @@
       // VERTEX BUFFER
       gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight)
       window.onresize = () => {
-        canvas.width = canvas.clientWidth // * window.devicePixelRatio;
-        canvas.height = canvas.clientHeight // * window.devicePixelRatio;
+        canvas.width = canvas.clientWidth * dpr
+        canvas.height = canvas.clientHeight * dpr
         gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight)
       }
       const buffer = gl.createBuffer()
@@ -208,12 +213,28 @@
 
       const timestampId = gl.getUniformLocation(program, 'u_time')
       const scale = gl.getUniformLocation(program, 'u_scale')
+      const bgColor = gl.getUniformLocation(program, 'u_bgColor')
+      const bubbleColor = gl.getUniformLocation(program, 'u_bubbleColor')
+      const lightColor = gl.getUniformLocation(program, 'u_lightColor')
+      const octaves = gl.getUniformLocation(program, 'u_octaves')
+      const persistence = gl.getUniformLocation(program, 'u_persistence')
+      const threshold = gl.getUniformLocation(program, 'u_threshold')
 
       const render = (timestamp) => {
         // Update timestamp
         gl.uniform1f(timestampId, timestamp / 1000)
+        // Set scale
         const sideLength = Math.min(canvas.width, canvas.height)
-        gl.uniform1f(scale, 1.5 / sideLength)
+        gl.uniform1f(scale, 1.7 / sideLength)
+        // Set colors
+        gl.uniform4f(bgColor, 1, 1, 1, 1)
+        gl.uniform4f(bubbleColor, 0, 0, 0, 1)
+        gl.uniform4f(lightColor, 1, 1, 1, 1)
+
+        // Set drawing parameters
+        gl.uniform1i(octaves, 2)
+        gl.uniform1f(persistence, 0.65)
+        gl.uniform1f(threshold, 0.65)
         // Draw
         gl.drawArrays(gl.TRIANGLE_FAN, 0, vertexCount)
         window.requestAnimationFrame(render)
