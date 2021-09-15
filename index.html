@@ -302,7 +302,11 @@
         const sideLength = Math.min(canvas.width, canvas.height)
         gl.uniform1f(scale, 1.7 / sideLength)
         // Set colors
-        gl.uniform4f(bgColor, 1, 1, 1, 1)
+        if (document.location.search === '?green') {
+          gl.uniform4f(bgColor, 0, 1, 0, 1)
+        } else {
+          gl.uniform4f(bgColor, 1, 1, 1, 1)
+        }
         gl.uniform4f(bubbleColor, 0, 0, 0, 1)
         gl.uniform4f(lightColor, 1, 1, 1, 1)
 
