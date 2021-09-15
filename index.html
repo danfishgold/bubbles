@@ -302,11 +302,9 @@
         const sideLength = Math.min(canvas.width, canvas.height)
         gl.uniform1f(scale, 1.7 / sideLength)
         // Set colors
-        if (document.location.search === '?green') {
-          gl.uniform4f(bgColor, 0, 1, 0, 1)
-        } else {
-          gl.uniform4f(bgColor, 1, 1, 1, 1)
-        }
+        const params = new URLSearchParams(document.location.search)
+        const bg = parseHexCode(params.get('bg') ?? 'ffffff') ?? [1, 1, 1]
+        gl.uniform4f(bgColor, ...bg, 1)
         gl.uniform4f(bubbleColor, 0, 0, 0, 1)
         gl.uniform4f(lightColor, 1, 1, 1, 1)
 
@@ -320,6 +318,19 @@
       }
 
       window.requestAnimationFrame(render)
+
+      function parseHexCode(input) {
+        console.log(input)
+        match = input.match(/^#?([0-9a-f]{6})$/i)
+        if (!match || !match[1]) {
+          return
+        }
+        return [
+          parseInt(match[1].substr(0, 2), 16) / 255,
+          parseInt(match[1].substr(2, 2), 16) / 255,
+          parseInt(match[1].substr(4, 2), 16) / 255,
+        ]
+      }
     </script>
   </body>
 </html>
