@@ -130,6 +130,7 @@
         uniform int u_octaves;
         uniform float u_persistence;
         uniform float u_threshold;
+        uniform float u_thresholdWidth;
 
         const int MAX_OCTAVES = 8;
 
@@ -213,7 +214,7 @@
         vec4 color(float f) {
           return
             f < u_threshold
-            ? u_bgColor
+            ? mix(u_bgColor, u_bubbleColor, smoothstep(u_threshold - u_thresholdWidth, u_threshold, f))
             : mix(u_bubbleColor, u_lightColor, smoothstep(u_threshold, 1.0, f));
         }
 
@@ -246,7 +247,7 @@
       gl.bufferData(
         gl.ARRAY_BUFFER,
         new Float32Array(vertexLocations),
-        gl.STATIC_DRAW
+        gl.STATIC_DRAW,
       )
 
       // PROGRAM
@@ -257,13 +258,13 @@
         gl.VERTEX_SHADER,
         vertexShaderSource,
         gl,
-        program
+        program,
       )
       const fragmentShader = buildShader(
         gl.FRAGMENT_SHADER,
         fragmentShaderSource,
         gl,
-        program
+        program,
       )
 
       gl.linkProgram(program)
@@ -283,7 +284,7 @@
         gl.FLOAT,
         gl.FALSE,
         fieldCount * Float32Array.BYTES_PER_ELEMENT,
-        0
+        0,
       )
 
       const timestampId = gl.getUniformLocation(program, 'u_time')
@@ -294,6 +295,7 @@
       const octaves = gl.getUniformLocation(program, 'u_octaves')
       const persistence = gl.getUniformLocation(program, 'u_persistence')
       const threshold = gl.getUniformLocation(program, 'u_threshold')
+      const thresholdWidth = gl.getUniformLocation(program, 'u_thresholdWidth')
 
       const render = (timestamp) => {
         // Update timestamp
@@ -312,6 +314,7 @@
         gl.uniform1i(octaves, 2)
         gl.uniform1f(persistence, 0.65)
         gl.uniform1f(threshold, 0.65)
+        gl.uniform1f(thresholdWidth, 0.005)
         // Draw
         gl.drawArrays(gl.TRIANGLE_FAN, 0, vertexCount)
         window.requestAnimationFrame(render)
